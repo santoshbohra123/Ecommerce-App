@@ -5,11 +5,12 @@ import Title from '../components/Title'
 import ProductItem from '../components/ProductItem'
 
 const Collection = () => {
-  const { products } = useContext(ShopContext);
+  const { products,search,showSearch } = useContext(ShopContext);
   const [showFilter, setShowFilter] = useState(false);
   const [filterProduct, setFilterProduct] = useState([]);
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
+  const [sortType, setSortType] = useState('relavent')
 
   const toggleCategory = (e) => {
     if (category.includes(e.target.value)) {
@@ -32,29 +33,50 @@ const Collection = () => {
   const applyFilter = () => {
     let productCopy = products.slice();
 
+    if(showSearch && search){
+      productCopy = productCopy.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
+    }
+
     if (category.length > 0) {
       productCopy = productCopy.filter(item => category.includes(item.category))
     }
 
     if (subCategory.length > 0) {
-      productCopy = productCopy.filter(item=> subCategory.includes(item.subCategory))
+      productCopy = productCopy.filter(item => subCategory.includes(item.subCategory))
     }
 
-setFilterProduct(productCopy);
+    setFilterProduct(productCopy);
+
+  }
+
+
+  const sortProduct = () => {
+
+    let fpCopy = filterProduct.slice();
+    switch (sortType) {
+      case "low-high":
+        setFilterProduct(fpCopy.sort((a, b) => (a.price - b.price)))
+        break;
+      case "high-low":
+        setFilterProduct(fpCopy.sort((a, b) => (b.price - a.price)))
+        break;
+
+      default:
+        applyFilter();
+        break;
+    }
 
   }
 
 
   useEffect(() => {
-    setFilterProduct(products);
-  }, [])
-
-  useEffect(() => {
     applyFilter();
-  }, [category, subCategory])
+  }, [category, subCategory, search, showSearch])
 
 
-
+  useEffect(()=>{
+    sortProduct();
+  },[sortType])
 
 
   return (
@@ -113,7 +135,7 @@ setFilterProduct(productCopy);
           <Title text1={'ALL'} text2={'COLLECTION'} />
 
           {/* Product Sort */}
-          <select className='border-2 border-gray-300 text-sm px-2' name="" id="">
+          <select onChange={(e)=> setSortType(e.target.value)} className='border-2 border-gray-300 text-sm px-2' name="" id="">
             <option value="relavent">Sort by: Relavent</option>
             <option value="low-high">Sort by: Low to High</option>
             <option value="high-low">Sort by: High to Low</option>
